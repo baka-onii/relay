@@ -85,6 +85,7 @@ class AgentConfig:
     default_timezone: str | None = None
 
     mode: str = _DEFAULTS["mode"]
+    llm_provider: str = _DEFAULTS["llm_provider"]
     llm_base_url: str = _DEFAULTS["llm_base_url"]
     llm_model: str = _DEFAULTS["llm_model"]
     llm_timeout_s: float = _DEFAULTS["llm_timeout_s"]
@@ -119,6 +120,11 @@ class AgentConfig:
             "functiongemma",
         }:
             raise ValueError("action_model must be 'needle' or 'functiongemma'.")
+        if not isinstance(self.llm_provider, str) or self.llm_provider not in {
+            "openai",
+            "anthropic",
+        }:
+            raise ValueError("llm_provider must be 'openai' or 'anthropic'.")
         if isinstance(self.require_approval_for, list):
             object.__setattr__(self, "require_approval_for", tuple(self.require_approval_for))
         if not isinstance(self.require_approval_for, tuple) or any(
@@ -224,6 +230,7 @@ _CONFIG_SECTIONS["models"].add("needle_weights")
 _CONFIG_SECTIONS["prompts"] = set(_PROMPT_NAMES) | {name + "_file" for name in _PROMPT_NAMES}
 _ENV_FIELDS = {
     "RELAY_WORKSPACE": "workspace_root",
+    "RELAY_LLM_PROVIDER": "llm_provider",
     "RELAY_LLM_BASE_URL": "llm_base_url",
     "RELAY_LLM_MODEL": "llm_model",
     "RELAY_LLM_API_KEY": "llm_api_key",

@@ -26,14 +26,19 @@ from urllib.parse import parse_qs, urlsplit
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from relay import Agent, AgentConfig, ToolCall, ToolError
-from relay.config import MAX_CONFIG_BYTES, MAX_PROMPT_CHARS, export_config, parse_config
+from relay.config import (
+    MAX_CONFIG_BYTES,
+    MAX_PROMPT_CHARS,
+    export_config,
+    normalize_model_url,
+    parse_config,
+)
 from relay.context.manager import ContextManager
 from relay.models.action import NeedleResult
 from relay.models.demo import DemoActionModel, DemoReasoningModel
 from relay.models.needle import NeedleActionModel
 from relay.models.reasoning import (
-    OpenAICompatibleReasoningModel,
-    api_base_url,
+    build_reasoning_model,
     build_system_prompt,
     build_translator_prompt,
 )
@@ -77,6 +82,7 @@ class Settings(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     mode: Literal["demo", "live"] = _DEFAULT_CONFIG.mode
+    provider: Literal["openai", "anthropic"] = _DEFAULT_CONFIG.llm_provider
     base_url: str = Field(default=_DEFAULT_CONFIG.llm_base_url, max_length=2048)
     model: str = Field(default=_DEFAULT_CONFIG.llm_model, min_length=1, max_length=200)
     # Session-only credential for non-local OpenAI-compatible providers. Never
@@ -143,7 +149,7 @@ class Settings(BaseModel):
     @field_validator("base_url")
     @classmethod
     def valid_url(cls, value: str) -> str:
-        api_base_url(value)
+        normalize_model_url(value)
         return value.strip().rstrip("/")
 
     @field_validator("api_key")
@@ -157,7 +163,9 @@ class Settings(BaseModel):
 
 
 _SETTING_FIELDS = {
-    name: {"base_url": "llm_base_url", "model": "llm_model"}.get(name, name)
+    name: {"base_url": "llm_base_url", "model": "llm_model", "provider": "llm_provider"}.get(
+        name, name
+    )
     for name in Settings.model_fields
 }
 # Session-only quick permissions: never mapped onto AgentConfig, so they are
@@ -463,8 +471,8 @@ class WorkspaceService:
         # effective key is the server-owned one.
         effective_key = (session_key or "").strip() or self.config.llm_api_key
         if not session_key and self.config.llm_api_key and settings.mode == "live":
-            configured = urlsplit(api_base_url(self.config.llm_base_url))
-            requested = urlsplit(api_base_url(settings.base_url))
+            configured = urlsplit(normalize_model_url(self.config.llm_base_url))
+            requested = urlsplit(normalize_model_url(settings.base_url))
             if (configured.scheme, configured.netloc) != (requested.scheme, requested.netloc):
                 raise WebError(
                     403,
@@ -811,10 +819,11 @@ class WorkspaceService:
                 "message": "Offline demo is ready. Simulated planning and confidence; real tools.",
             }
         config = self.run_config(settings, session_key or settings.api_key)
-        reasoning = OpenAICompatibleReasoningModel(
+        reasoning = build_reasoning_model(
             config.llm_base_url,
             config.llm_model,
             api_key=config.llm_api_key,
+            provider=config.llm_provider,
         )
         try:
             models = reasoning.check_connection()

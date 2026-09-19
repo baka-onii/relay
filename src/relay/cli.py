@@ -60,6 +60,7 @@ def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
     for flag, dest, kind in (
         ("base-url", "llm_base_url", str),
         ("model", "llm_model", str),
+        ("llm-provider", "llm_provider", str),
         ("llm-api-key", "llm_api_key", str),
         ("max-tool-steps", "max_tool_steps", int),
         ("max-stalls", "max_stalls", int),
@@ -349,6 +350,16 @@ def _resolve_translator_server(args: argparse.Namespace) -> tuple[str, subproces
 
 
 def _warn_if_reasoning_down(config: AgentConfig) -> None:
+    from urllib.parse import urlsplit
+
+    try:
+        host = (urlsplit(config.llm_base_url).hostname or "").lower()
+    except ValueError:
+        host = ""
+    # Hosted providers (e.g. Google AI Studio) expose no /health endpoint;
+    # probing them only produces a spurious warning. Only probe local servers.
+    if host not in {"127.0.0.1", "localhost", "::1"}:
+        return
     root = config.llm_base_url
     if root.endswith("/v1"):
         root = root[: -len("/v1")]

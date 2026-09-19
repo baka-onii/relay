@@ -123,6 +123,21 @@ def detect_counter(
         return OllamaCounter(base_url, model, timeout_s)
     if not lowered:
         return HeuristicCounter()
+    # Hosted OpenAI-compatible providers (Google AI Studio, OpenAI,
+    # OpenRouter, Together, Groq, ...) expose no /tokenize endpoint.
+    # Skip the doomed probe and use the chars/4 heuristic directly.
+    hosted_markers = (
+        "generativelanguage",
+        "googleapis",
+        "api.openai.com",
+        "api.anthropic.com",
+        "anthropic",
+        "openrouter",
+        "together",
+        "groq",
+    )
+    if any(marker in lowered for marker in hosted_markers):
+        return HeuristicCounter()
     return LlamaCppCounter(base_url, timeout_s)
 
 

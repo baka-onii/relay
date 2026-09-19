@@ -33,6 +33,7 @@ default_timezone = ""
 llm_stream = true
 mode = "live"
 action_model = "needle"
+llm_provider = "openai"
 llm_base_url = "http://127.0.0.1:8080"
 llm_model = "ornith"
 llm_timeout_s = 120.0

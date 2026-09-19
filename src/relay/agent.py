@@ -15,9 +15,9 @@ from relay.models.action import ActionModel
 from relay.models.demo import DemoActionModel, DemoReasoningModel
 from relay.models.needle import NeedleActionModel
 from relay.models.reasoning import (
-    OpenAICompatibleReasoningModel,
     ReasoningModel,
     StreamingReasoningModel,
+    build_reasoning_model,
     build_system_prompt,
     build_translator_prompt,
 )
@@ -56,13 +56,14 @@ class Agent:
         if self.config.mode == "demo":
             reasoning = reasoning or DemoReasoningModel()
             action = action or DemoActionModel()
-        self._reasoning = reasoning or OpenAICompatibleReasoningModel(
+        self._reasoning = reasoning or build_reasoning_model(
             base_url=config.llm_base_url,
             model=config.llm_model,
             timeout_s=config.llm_timeout_s,
             max_tokens=config.llm_max_tokens,
             temperature=config.llm_temperature,
             api_key=config.llm_api_key,
+            provider=config.llm_provider,
         )
         self._owns_action = action is None
         if action is None and self.config.action_model == "functiongemma":

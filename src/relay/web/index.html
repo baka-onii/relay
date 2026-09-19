@@ -662,7 +662,68 @@
             >
           </div>
           <div class="settings-note" id="mode-explanation"></div>
+          <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+            <button
+              type="button"
+              class="active"
+              data-settings-tab="model"
+              role="tab"
+              aria-selected="true"
+            >
+              Model</button
+            ><button
+              type="button"
+              data-settings-tab="limits"
+              role="tab"
+              aria-selected="false"
+            >
+              Limits</button
+            ><button
+              type="button"
+              data-settings-tab="context"
+              role="tab"
+              aria-selected="false"
+            >
+              Context & tools</button
+            ><button
+              type="button"
+              data-settings-tab="streaming"
+              role="tab"
+              aria-selected="false"
+            >
+              Streaming</button
+            ><button
+              type="button"
+              data-settings-tab="prompts"
+              role="tab"
+              aria-selected="false"
+            >
+              Prompts</button
+            ><button
+              type="button"
+              data-settings-tab="appearance"
+              role="tab"
+              aria-selected="false"
+            >
+              Appearance</button
+            >
+          </div>
+          <section
+            class="settings-tabpanel"
+            data-settings-panel="model"
+            role="tabpanel"
+          >
           <div id="live-settings">
+            <label class="field-label" for="provider">API style</label
+            ><select class="text-input" id="provider" required>
+              <option value="openai">OpenAI-compatible</option>
+              <option value="anthropic">Anthropic-compatible</option>
+            </select>
+            <p class="field-help" id="provider-help">
+              OpenAI-style: llama.cpp, Ollama, OpenAI, OpenRouter, Together,
+              Groq, Google AI Studio. Anthropic-style: Anthropic or an
+              Anthropic-compatible proxy.
+            </p>
             <label class="field-label" for="base-url"
               >Reasoning server URL</label
             ><input
@@ -690,10 +751,11 @@
               maxlength="500"
             />
             <p class="field-help">
-              llama.cpp, Ollama, or any OpenAI-compatible server
-              (OpenAI, OpenRouter, Together, Groq, …). This URL must
-              be reachable from the <strong>Python server</strong>, not just
-              your browser. The key is never saved, exported, or shown again.
+              Custom APIs welcome: point the URL at any OpenAI- or
+              Anthropic-styled endpoint and pick its style above.
+              This URL must be reachable from the
+              <strong>Python server</strong>, not just your browser. The key
+              is never saved, exported, or shown again.
             </p>
             <div class="key-notice">
               <svg class="icon tiny"><use href="#i-shield" /></svg>
@@ -704,12 +766,13 @@
               </p>
             </div>
           </div>
-          <details class="advanced-settings">
-            <summary>
-              Runtime & permissions<svg class="icon tiny">
-                <use href="#i-down" />
-              </svg>
-            </summary>
+          </section>
+          <section
+            class="settings-tabpanel hidden"
+            data-settings-panel="limits"
+            role="tabpanel"
+          >
+            <h3 class="tabpanel-heading">Runtime & permissions</h3>
             <div class="limits-grid">
               <label
                 >Max tool steps<input
@@ -808,9 +871,7 @@
               need your approval in this console. Confidence
               alone is never permission.
             </p>
-          </details>
-          <details class="settings-section model-settings">
-            <summary>Model output & timing</summary>
+            <h3 class="tabpanel-heading">Model output & timing</h3>
             <p class="field-help">
               Long file payloads need room in both models. These limits affect
               live inference, not demo planning.
@@ -858,9 +919,13 @@
                   required
               /></label>
             </div>
-          </details>
-          <details class="settings-section resource-settings">
-            <summary>Workspace context & tool limits</summary>
+          </section>
+          <section
+            class="settings-tabpanel hidden"
+            data-settings-panel="context"
+            role="tabpanel"
+          >
+            <h3 class="tabpanel-heading">Workspace context & tool limits</h3>
             <p class="field-help">
               Paths are always relative to
               <strong id="settings-workspace"></strong>. Change the server
@@ -972,9 +1037,13 @@
               placeholder="System timezone, or Asia/Kolkata"
               maxlength="100"
             />
-          </details>
-          <details class="settings-section appearance-settings">
-            <summary>Appearance</summary>
+          </section>
+          <section
+            class="settings-tabpanel hidden"
+            data-settings-panel="appearance"
+            role="tabpanel"
+          >
+            <h3 class="tabpanel-heading">Appearance</h3>
             <p class="field-help">
               Stored in this browser only. The base color tints the workspace
               background, sidebar, top bar, cards, inputs, and dialogs; the
@@ -1002,9 +1071,13 @@
             >
               Restore default colors
             </button>
-          </details>
-          <details class="settings-section streaming-settings">
-            <summary>Streaming & model conversation</summary>
+          </section>
+          <section
+            class="settings-tabpanel hidden"
+            data-settings-panel="streaming"
+            role="tabpanel"
+          >
+            <h3 class="tabpanel-heading">Streaming & model conversation</h3>
             <label class="check-option"
               ><input
                 id="llm-stream"
@@ -1081,9 +1154,13 @@
               typing animation. Tool execution and approval prompts are never
               delayed by display pacing.
             </p>
-          </details>
-          <details class="settings-section prompt-settings">
-            <summary>Reasoning, translation & confirmation prompts</summary>
+          </section>
+          <section
+            class="settings-tabpanel hidden"
+            data-settings-panel="prompts"
+            role="tabpanel"
+          >
+            <h3 class="tabpanel-heading">Reasoning, translation & confirmation prompts</h3>
             <p class="field-help">
               Applied to the next run. Actual tools and workspace metadata are
               attached automatically. Custom text cannot disable validation,
@@ -1132,7 +1209,7 @@
             >
               Restore server instructions
             </button>
-          </details>
+          </section>
           <div class="config-file-actions">
             <button
               type="button"

@@ -39,6 +39,7 @@ include_workspace_listing = true
 [models]
 mode = "live" # or "demo" (explicit simulated models, real tools)
 action_model = "needle" # or "functiongemma" (llama-server GGUF translator)
+llm_provider = "openai" # or "anthropic" (Messages API, x-api-key auth)
 llm_base_url = "http://127.0.0.1:11434/v1"
 llm_model = "qwen2.5:3b"
 llm_max_tokens = 4096
@@ -86,6 +87,12 @@ run. Disable it to have the reasoning model explicitly use `read_directory` inst
 The `[models]` section also accepts `llm_stream` (default true). Disable it for an endpoint
 that cannot return SSE. The `[streaming]` settings are described in the
 [streaming reference](streaming.md) and can be edited in the UI or with CLI overrides.
+
+Set `llm_provider` (or `RELAY_LLM_PROVIDER`, `--llm-provider`, or the API style
+dropdown in Settings) to `"openai"` for OpenAI-compatible endpoints (llama.cpp,
+Ollama, OpenAI, OpenRouter, Together, Groq, Google AI Studio) or `"anthropic"`
+for Anthropic Messages API endpoints (Anthropic, Anthropic-compatible proxies).
+The base URL stays free-form either way: custom APIs just need the matching style.
 
 The `[models]` section optionally accepts `needle_weights`, resolved relative to the file.
 Custom Needle weights currently have no calibrated confidence; missing scores fail closed.

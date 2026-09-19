@@ -2493,6 +2493,43 @@ dialog::backdrop {
 .settings-content {
   padding: 0 28px 24px;
 }
+.settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 20px 0 4px;
+  border-bottom: 1px solid #e4e9dd;
+}
+.settings-tabs button {
+  border: 0;
+  background: none;
+  color: #839873;
+  padding: 0 0 12px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.settings-tabs button.active {
+  border-color: #c68761;
+  color: #687b5d;
+  font-weight: 500;
+}
+.settings-tabpanel {
+  padding-top: 4px;
+}
+.tabpanel-heading {
+  font-size: 11px;
+  font-weight: 500;
+  color: #687b5d;
+  margin: 20px 0 0;
+}
+select.text-input {
+  appearance: auto;
+}
 .mode-options {
   display: grid;
   grid-template-columns: 1fr 1fr;

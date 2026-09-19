@@ -1575,10 +1575,33 @@ function renderHistory() {
         : `<div class="empty-state">${icon("history")}<h3>A clean slate.</h3><p>Your runs, tool activity, and execution outcomes will appear here as you work.</p><button class="button secondary" data-view="playground">Start a conversation${icon("arrow", true)}</button></div>`
     }`;
 }
+const SETTINGS_TABS = ["model", "limits", "context", "streaming", "prompts", "appearance"];
+function selectSettingsTab(name) {
+  if (!SETTINGS_TABS.includes(name)) return;
+  $$("[data-settings-tab]").forEach((button) => {
+    const active = button.dataset.settingsTab === name;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  $$("[data-settings-panel]").forEach((panel) => {
+    panel.classList.toggle("hidden", panel.dataset.settingsPanel !== name);
+  });
+}
+function updateProviderHelp() {
+  const anthropic = $("#provider").value === "anthropic";
+  $("#base-url").placeholder = anthropic
+    ? "https://api.anthropic.com"
+    : "http://127.0.0.1:8080/v1";
+  $("#model-name").placeholder = anthropic ? "claude-sonnet-4-5" : "ornith";
+  $("#provider-help").textContent = anthropic
+    ? "Anthropic-style: Anthropic or an Anthropic-compatible proxy (Messages API, x-api-key auth)."
+    : "OpenAI-style: llama.cpp, Ollama, OpenAI, OpenRouter, Together, Groq, Google AI Studio.";
+}
 function showSettings() {
   if (!S.settings) return;
   const s = S.settings;
   $(`input[name="mode"][value="${s.mode}"]`).checked = true;
+  $("#provider").value = s.provider || "openai";
   $("#base-url").value = s.base_url;
   $("#model-name").value = s.model;
   // The server never returns the key; the field always starts empty.
@@ -1600,11 +1623,14 @@ function showSettings() {
   $("#settings-workspace").textContent = S.workspace?.path || ".";
   $("#connection-result").classList.add("hidden");
   updateModeExplanation();
+  updateProviderHelp();
+  selectSettingsTab("model");
   if (!$("#settings-dialog").open) $("#settings-dialog").showModal();
 }
 function updateModeExplanation() {
   const demo = $('input[name="mode"]:checked').value === "demo";
   $("#live-settings").classList.toggle("hidden", demo);
+  $("#provider").disabled = demo;
   $("#base-url").disabled = demo;
   $("#model-name").disabled = demo;
   $("#api-key").disabled = demo;
@@ -1616,6 +1642,7 @@ function settingsFromForm() {
   const settings = {
     ...S.settings,
     mode: $('input[name="mode"]:checked').value,
+    provider: $("#provider").value,
     base_url: $("#base-url").value.trim(),
     model: $("#model-name").value.trim(),
     api_key: $("#api-key").value.trim(),
@@ -1752,7 +1779,7 @@ async function resetPrompts() {
 function showGuide() {
   $("#detail-title").textContent = "A small guide to Relay";
   $("#detail-content").innerHTML =
-    `<div class="guide-section"><span class="guide-number">01</span><div><h3>Start with the workspace</h3><p>Try “Explore this workspace”, “Find the authentication implementation”, or “Calculate 24 * 18 + 120”. The offline demo supports these concrete tasks with real tools, not live AI reasoning.</p></div></div><div class="guide-section"><span class="guide-number">02</span><div><h3>Bring your reasoning model</h3><p>Start an OpenAI-compatible server, then choose <strong>Live models</strong> in Settings. For Ollama, an example is <code>ollama run qwen2.5:3b</code> with server URL <code>http://127.0.0.1:11434/v1</code>. The server must be reachable from the machine hosting this console. The action model downloads its small inference engine on first use; offline installation is described in the README.</p></div></div><div class="guide-section"><span class="guide-number">03</span><div><h3>Stay in the loop</h3><p>The agent can ask you questions. Reply in the composer to continue. Each write asks for your approval and displays the exact content. Stop a run anytime; an in-flight model call may finish, but no subsequent tool will execute.</p></div></div><div class="guide-section"><span class="guide-number">04</span><div><h3>Trust the boundary, inspect the work</h3><p>All paths stay in your configured workspace. No shell, Python execution, append, binary writes, or delete tools. Low-confidence or invalid calls do not execute. Use the Activity panel or expand an action card to see exactly what happened.</p></div></div><div class="guide-pipeline">REASON → PARSE → TRANSLATE → SANITIZE → VALIDATE → CONFIDENCE → SAFETY → EXECUTE → OBSERVE → UPDATE CONTEXT → REASON</div><p class="field-help">Conversations are isolated to your browser session and kept in server memory. They expire after two hours of inactivity and reset when the server restarts. Export a run trace if you want to keep it.</p>`;
+    `<div class="guide-section"><span class="guide-number">01</span><div><h3>Start with the workspace</h3><p>Try “Explore this workspace”, “Find the authentication implementation”, or “Calculate 24 * 18 + 120”. The offline demo supports these concrete tasks with real tools, not live AI reasoning.</p></div></div><div class="guide-section"><span class="guide-number">02</span><div><h3>Bring your reasoning model</h3><p>Start an OpenAI- or Anthropic-compatible server, then choose <strong>Live models</strong> in Settings and pick its API style. For Ollama, an example is <code>ollama run qwen2.5:3b</code> with server URL <code>http://127.0.0.1:11434/v1</code>. The server must be reachable from the machine hosting this console. The action model downloads its small inference engine on first use; offline installation is described in the README.</p></div></div><div class="guide-section"><span class="guide-number">03</span><div><h3>Stay in the loop</h3><p>The agent can ask you questions. Reply in the composer to continue. Each write asks for your approval and displays the exact content. Stop a run anytime; an in-flight model call may finish, but no subsequent tool will execute.</p></div></div><div class="guide-section"><span class="guide-number">04</span><div><h3>Trust the boundary, inspect the work</h3><p>All paths stay in your configured workspace. No shell, Python execution, append, binary writes, or delete tools. Low-confidence or invalid calls do not execute. Use the Activity panel or expand an action card to see exactly what happened.</p></div></div><div class="guide-pipeline">REASON → PARSE → TRANSLATE → SANITIZE → VALIDATE → CONFIDENCE → SAFETY → EXECUTE → OBSERVE → UPDATE CONTEXT → REASON</div><p class="field-help">Conversations are isolated to your browser session and kept in server memory. They expire after two hours of inactivity and reset when the server restarts. Export a run trace if you want to keep it.</p>`;
   $("#detail-dialog").showModal();
 }
 async function exportRun(id) {
@@ -2055,6 +2082,10 @@ $("#settings-form").addEventListener("submit", saveSettings);
 $$('input[name="mode"]').forEach((input) =>
   input.addEventListener("change", updateModeExplanation),
 );
+$$("[data-settings-tab]").forEach((button) =>
+  button.addEventListener("click", () => selectSettingsTab(button.dataset.settingsTab)),
+);
+$("#provider").addEventListener("change", updateProviderHelp);
 $("#test-connection").addEventListener("click", testConnection);
 $(".brand").addEventListener("click", (event) => {
   event.preventDefault();
