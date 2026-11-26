@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-26T10:23:36Z",
+  "title": "Design System: Relay Operator Console",
+  "extensions": {
+    "colorMeta": {
+      "signal-turquoise": {
+        "role": "primary",
+        "displayName": "Signal Turquoise",
+        "canonical": "#2fd4c4",
+        "tonalRamp": ["#1c7f76", "#26aa9d", "#2fd4c4", "#54dccf", "#7ae3d9"]
+      },
+      "teal-accent": {
+        "role": "primary",
+        "displayName": "Teal Accent",
+        "canonical": "#0f7d78",
+        "tonalRamp": ["#094b48", "#0c6460", "#0f7d78", "#3a9490", "#65aca9"]
+      },
+      "signal-green": {
+        "role": "secondary",
+        "displayName": "Ready Green",
+        "canonical": "#57d98b",
+        "tonalRamp": ["#348253", "#46ae6f", "#57d98b", "#75e0a0", "#93e7b5"]
+      },
+      "signal-amber": {
+        "role": "secondary",
+        "displayName": "Attention Amber",
+        "canonical": "#e3a63f",
+        "tonalRamp": ["#886426", "#b68532", "#e3a63f", "#e8b662", "#edc684"]
+      },
+      "signal-red": {
+        "role": "secondary",
+        "displayName": "Alarm Red",
+        "canonical": "#f06a6a",
+        "tonalRamp": ["#904040", "#c05555", "#f06a6a", "#f38585", "#f5a0a0"]
+      },
+      "console-ground": {
+        "role": "neutral",
+        "displayName": "Console Ground",
+        "canonical": "#0b1014",
+        "tonalRamp": ["#070a0c", "#090d10", "#0b1014", "#373b3e", "#636669"]
+      },
+      "console-panel": {
+        "role": "neutral",
+        "displayName": "Console Panel",
+        "canonical": "#111a20",
+        "tonalRamp": ["#0a1013", "#0e151a", "#111a20", "#3c4348", "#676c70"]
+      },
+      "console-ink": {
+        "role": "neutral",
+        "displayName": "Console Ink",
+        "canonical": "#d6e4e6",
+        "tonalRamp": ["#80898a", "#abb6b8", "#d6e4e6", "#dde9eb", "#e5eeef"]
+      },
+      "printout-ground": {
+        "role": "neutral",
+        "displayName": "Printout Ground",
+        "canonical": "#e9eef0",
+        "tonalRamp": ["#8c8f90", "#babec0", "#e9eef0", "#edf1f3", "#f1f4f5"]
+      },
+      "printout-ink": {
+        "role": "neutral",
+        "displayName": "Printout Ink",
+        "canonical": "#12211f",
+        "tonalRamp": ["#0b1413", "#0e1a19", "#12211f", "#3d4947", "#68726f"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The READY empty-state word and its blinking block cursor; one per screen."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles and dialog headings in uppercase monospace."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Record labels, card headings, empty states, and section titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose answers, markdown, and composer input."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, badges, nav keys, field labels, table headers, and status tokens."
+      },
+      "brand": {
+        "displayName": "Brand",
+        "purpose": "The sidebar wordmark only; the one place with negative tracking."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Step counts, elapsed time, and figures that must align across rows."
+      },
+      "stat": {
+        "displayName": "Stat",
+        "purpose": "Run-history totals at 19px on desktop; the only numeric role above 15px."
+      },
+      "stat-compact": {
+        "displayName": "Stat Compact",
+        "purpose": "Run-history totals at 16px under 760px."
+      },
+      "dialog-title": {
+        "displayName": "Dialog Title",
+        "purpose": "Destructive confirmation headings."
+      },
+      "display-compact": {
+        "displayName": "Display Compact",
+        "purpose": "The READY word under 420px."
+      }
+    },
+    "shadows": [
+      {
+        "name": "overlay-dark",
+        "value": "0 18px 48px -12px rgba(0, 0, 0, 0.75)",
+        "purpose": "Dialogs, popovers, toasts, and fixed overlays over the blue-black ground."
+      },
+      {
+        "name": "overlay-light",
+        "value": "0 18px 44px -14px rgba(24, 40, 46, 0.35)",
+        "purpose": "The same overlays over printout grey."
+      },
+      {
+        "name": "input-focus-inset",
+        "value": "inset 2px 0 0 #2fd4c4",
+        "purpose": "Left-edge state bar on a focused text field; not elevation."
+      },
+      {
+        "name": "composer-focus-inset",
+        "value": "inset 0 0 0 1px #2fd4c4",
+        "purpose": "One-pixel inner keyline when the composer has focus."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-shift",
+        "value": "0.12s ease",
+        "purpose": "Hover, focus, border, and fill changes on controls and rows."
+      },
+      {
+        "name": "drawer-slide",
+        "value": "0.18s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Off-canvas navigation and overlay entry."
+      },
+      {
+        "name": "cursor-blink",
+        "value": "1.15s steps(1, end) infinite",
+        "purpose": "The display word's block cursor."
+      },
+      {
+        "name": "spinner",
+        "value": "0.7s linear infinite",
+        "purpose": "The only circular element in the interface."
+      }
+    ],
+    "breakpoints": [
+      { "name": "wide", "value": "1250px" },
+      { "name": "inspector-overlay", "value": "1060px" },
+      { "name": "tool-table-narrow", "value": "900px" },
+      { "name": "mobile-drawer", "value": "760px" },
+      { "name": "compact-phone", "value": "420px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "One turquoise action per surface: send, save, or confirm.",
+      "html": "<button class=\"ds-btn-primary\">Save changes</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:32px;padding:6px 13px;border:1px solid #2fd4c4;border-radius:0;background:#2fd4c4;color:#04100f;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .12s,border-color .12s,color .12s}.ds-btn-primary:hover{background:#63e7da;border-color:#63e7da}.ds-btn-primary:focus-visible{outline:2px solid #2fd4c4;outline-offset:2px}"
+    },
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Square bordered action for secondary commands and dialogs.",
+      "html": "<button class=\"ds-btn-default\">Cancel</button>",
+      "css": ".ds-btn-default{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:32px;padding:6px 13px;border:1px solid #5c6568;border-radius:0;background:#111a20;color:#d6e4e6;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .12s,border-color .12s,color .12s}.ds-btn-default:hover{background:#1b2b33;border-color:#5c6568}.ds-btn-default:focus-visible{outline:2px solid #2fd4c4;outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-input",
+      "description": "Mono field on the recessed ground; focus adds a turquoise border and left bar.",
+      "html": "<label class=\"ds-field\"><span>Workspace root</span><input class=\"ds-input\" value=\"examples/workspace\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:4px;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#b0bec0}.ds-input{box-sizing:border-box;width:100%;padding:7px 9px;border:1px solid #5c6568;border-radius:0;background:#0b1014;color:#d6e4e6;font:12px/1.4 \"Spline Sans Mono\",Consolas,monospace;transition:border-color .12s,background .12s}.ds-input::placeholder{color:#7d8a8c}.ds-input:focus{outline:none;border-color:#2fd4c4;box-shadow:inset 2px 0 0 #2fd4c4}"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "status-badge-running",
+      "description": "Square lamp plus uppercase mono label; color carries the run state.",
+      "html": "<span class=\"ds-badge\">Running</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 6px;border:1px solid rgba(47,212,196,.45);border-radius:0;color:#2fd4c4;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}.ds-badge::before{content:\"\";width:5px;height:5px;background:currentColor}"
+    },
+    {
+      "name": "Operator Information Area",
+      "kind": "custom",
+      "refersTo": "oia-state-ready",
+      "description": "The 26px truth line: state lamp, fixed runtime segments, and a local marker.",
+      "html": "<div class=\"ds-oia\"><span class=\"ds-oia-state\">Ready</span><span class=\"ds-oia-seg\">Root <b>workspace</b></span><span class=\"ds-oia-seg\">Job <b>0042</b></span><span class=\"ds-oia-seg\">Steps <b>3/20</b></span><span class=\"ds-oia-seg\">Gate <b>0.85</b></span><span class=\"ds-oia-seg\">Buffer <b>8/32k</b></span><span class=\"ds-oia-spacer\"></span><span class=\"ds-oia-local\">Local</span></div>",
+      "css": ".ds-oia{display:flex;align-items:stretch;height:26px;overflow:hidden;border-top:1px solid #5c6568;background:#16232a;color:#b0bec0;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}.ds-oia-state{display:inline-flex;align-items:center;gap:5px;padding:0 12px;background:#57d98b;color:#04100f;font-weight:600;letter-spacing:.04em}.ds-oia-state::before{content:\"\";width:6px;height:6px;background:currentColor;opacity:.85}.ds-oia-seg{display:inline-flex;align-items:center;gap:5px;padding:0 10px;border-right:1px solid #383f42}.ds-oia-seg b{color:#d6e4e6;font-weight:600;font-variant-numeric:tabular-nums}.ds-oia-spacer{flex:1}.ds-oia-local{display:inline-flex;align-items:center;padding:0 10px;color:#57d98b;font-weight:600;letter-spacing:.04em}"
+    },
+    {
+      "name": "Input Record",
+      "kind": "custom",
+      "refersTo": "input-record",
+      "description": "The user's request as an operation record with a reversed INPUT bar cut into the frame.",
+      "html": "<div class=\"ds-record\"><p>Explore this workspace</p></div>",
+      "css": ".ds-record{position:relative;margin-top:9px;padding:9px 11px;border:1px solid #5c6568;border-radius:0;background:#111a20;color:#d6e4e6;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;line-height:1.65;white-space:pre-wrap}.ds-record::before{content:\"Input\";position:absolute;top:-9px;left:-1px;padding:0 5px;background:#d6e4e6;color:#0b1014;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;font-weight:600;letter-spacing:.04em;line-height:14px;text-transform:uppercase}.ds-record p{margin:0}"
+    },
+    {
+      "name": "Starter Row",
+      "kind": "custom",
+      "refersTo": "starter-row",
+      "description": "Coded task row in the READY table: key, square icon tile, prompt with detail, arrow.",
+      "html": "<button class=\"ds-starter\"><span class=\"ds-starter-code\">F1</span><span class=\"ds-starter-icon\"><svg viewBox=\"0 0 24 24\" width=\"13\" height=\"13\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7h6l2 2h10v10H3z\"/></svg></span><span class=\"ds-starter-copy\"><strong>Explore the workspace</strong><small>List the root, then read a file.</small></span><span class=\"ds-starter-arrow\">&#8594;</span></button>",
+      "css": ".ds-starter{display:grid;grid-template-columns:42px 24px 1fr 14px;gap:10px;align-items:center;width:100%;padding:9px 8px;border:0;border-bottom:1px solid #383f42;border-radius:0;background:transparent;color:#d6e4e6;text-align:left;cursor:pointer;transition:background .12s,color .12s}.ds-starter:hover{background:#1b2b33}.ds-starter-code{font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;letter-spacing:.04em;color:#8b9a9c}.ds-starter-icon{display:grid;place-items:center;width:24px;height:24px;border:1px solid rgba(87,217,139,.45);color:#57d98b}.ds-starter-copy{display:flex;flex-direction:column;gap:1px;min-width:0}.ds-starter-copy strong{font-family:\"Spline Sans\",Segoe UI,sans-serif;font-size:13px;font-weight:600}.ds-starter-copy small{font-size:12px;color:#b0bec0}.ds-starter-arrow{color:#8b9a9c;transition:color .12s,transform .12s}.ds-starter:hover .ds-starter-arrow{color:#2fd4c4;transform:translateX(2px)}"
+    },
+    {
+      "name": "Composer",
+      "kind": "custom",
+      "refersTo": "composer-shell",
+      "description": "Command line with a turquoise prompt, auto-growing textarea, and compact toolbar.",
+      "html": "<form class=\"ds-composer\" onsubmit=\"return false\"><span class=\"ds-composer-prompt\">&gt;</span><textarea rows=\"2\" placeholder=\"Give Relay something to work on.\"></textarea><div class=\"ds-composer-toolbar\"><span class=\"ds-composer-chip\">workspace</span><button class=\"ds-send\" aria-label=\"Send\">&#8593;</button></div></form>",
+      "css": ".ds-composer{position:relative;border:1px solid #5c6568;border-radius:0;background:#111a20;color:#d6e4e6;transition:border-color .12s,box-shadow .12s}.ds-composer:focus-within{border-color:#2fd4c4;box-shadow:inset 0 0 0 1px #2fd4c4}.ds-composer-prompt{position:absolute;top:9px;left:10px;color:#2fd4c4;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:13px}.ds-composer textarea{display:block;box-sizing:border-box;width:100%;min-height:52px;padding:8px 11px 2px 25px;border:0;background:transparent;color:#d6e4e6;font:13px/1.55 \"Spline Sans\",Segoe UI,sans-serif;resize:none}.ds-composer textarea:focus{outline:none}.ds-composer-toolbar{display:flex;align-items:center;justify-content:space-between;padding:3px 5px 5px 7px;border-top:1px solid #383f42}.ds-composer-chip{padding:3px 6px;border:1px solid transparent;color:#b0bec0;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px;letter-spacing:.03em}.ds-send{display:grid;place-items:center;width:29px;height:29px;border:0;border-radius:0;background:#2fd4c4;color:#04100f;cursor:pointer}.ds-send:hover{background:#63e7da}"
+    },
+    {
+      "name": "Tool Card",
+      "kind": "card",
+      "description": "Square disclosure record for a tool call: name, status, duration, then arguments and result.",
+      "html": "<details class=\"ds-tool\" open><summary><span class=\"ds-tool-name\">read_directory</span><span class=\"ds-tool-state\">Complete</span><span class=\"ds-tool-time\">41ms</span></summary><div class=\"ds-tool-body\"><div><span>Path</span><code>.</code></div><div><span>Decision</span><code>Allowed by policy</code></div></div></details>",
+      "css": ".ds-tool{border:1px solid #383f42;border-radius:0;background:#0b1014;color:#d6e4e6;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px}.ds-tool summary{display:flex;align-items:center;gap:7px;min-height:26px;padding:4px 8px;cursor:pointer;list-style:none;color:#b0bec0;transition:background .12s}.ds-tool summary:hover{background:#1b2b33}.ds-tool-name{font-weight:600;color:#d6e4e6}.ds-tool-state{margin-left:auto;color:#57d98b;letter-spacing:.04em;text-transform:uppercase}.ds-tool-time{color:#8b9a9c;font-variant-numeric:tabular-nums}.ds-tool-body{padding:7px 9px;border-top:1px solid #383f42;background:#111a20;display:flex;flex-direction:column;gap:5px}.ds-tool-body div{display:flex;gap:10px}.ds-tool-body span{min-width:74px;color:#8b9a9c;text-transform:uppercase;letter-spacing:.04em}.ds-tool-body code{color:#d6e4e6}"
+    },
+    {
+      "name": "Runtime Pipeline",
+      "kind": "custom",
+      "description": "Phase list with square nodes: pending rule, current turquoise ring, done green fill.",
+      "html": "<ol class=\"ds-phases\"><li class=\"ds-done\"><span></span>Reasoning</li><li class=\"ds-current\"><span></span>Parse intent</li><li><span></span>Translate action</li><li><span></span>Execute tool</li></ol>",
+      "css": ".ds-phases{list-style:none;margin:0;padding:0;font-family:\"Spline Sans Mono\",Consolas,monospace;font-size:12px}.ds-phases li{display:flex;align-items:center;gap:7px;padding:3px 0;color:#8b9a9c}.ds-phases li span{width:11px;height:11px;border:1px solid #5c6568;background:#0b1014;flex-shrink:0}.ds-phases .ds-done{color:#b0bec0}.ds-phases .ds-done span{border-color:#57d98b;background:#57d98b}.ds-phases .ds-current{color:#d6e4e6}.ds-phases .ds-current span{border-color:#2fd4c4;box-shadow:inset 0 0 0 2px rgba(47,212,196,.3)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Job Control Deck",
+    "overview": "Relay is a job control deck, not a chat app. A request enters as an INPUT field, the agent's work appears as operation records with return codes, and a persistent Operator Information Area tells the truth about runtime state along the bottom edge. The 3270 field grammar is deliberate: reversed label bars, fixed-width data, square annunciator lamps, and no decorative chrome between the operator and the machine.\n\nThe surface is flat blue-black in dark mode and cool printout grey in light mode, but the grammar is identical in both. Panels are separated by 1px rules and small tonal steps, never by drop shadows. Color is functional: turquoise means interactive, green means ready or complete, amber means attention or pending, red means alarm or denied. Nothing else gets a hue.\n\nThe console refuses the category defaults: no centered hero floating over cards, no speech bubbles, no gradient glass, no pill-shaped chips, no rounded panels. Density is the point. A solo developer should be able to watch the reasoning turn, the translator, the gates, the tool result, and the context budget without opening a dialog or decoding a bubble.",
+    "keyCharacteristics": [
+      "Square geometry: every surface has 0 radius; the spinner is the only circle.",
+      "1px rules and tonal steps carry structure; shadows belong only to overlays.",
+      "Reversed ink label bars anchor the field grammar.",
+      "Exactly four signal hues, each with one meaning, in both themes.",
+      "Monospace for every label, number, path, tool name, and status token.",
+      "The 26px OIA status line is always visible and never decorative.",
+      "Light theme is a printout of the same console, not a separate design.",
+      "Functional type never drops below 12px."
+    ],
+    "rules": [
+      {
+        "name": "The Four-Lamp Rule",
+        "body": "Turquoise is interactive, green is ready, amber is attention, red is alarm. There is no fifth hue and no decorative use of these four. Reach for weight, a rule, or a reversed bar before color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Knob Rule",
+        "body": "The operator controls exactly two colors: a base and an accent. Every surface, rule, and text tone derives from them via color-mix. Never hardcode a palette hex in a theme-following component.",
+        "section": "colors"
+      },
+      {
+        "name": "The Printout Mirror Rule",
+        "body": "Light mode keeps the same hue assignments and contrast roles as dark mode. It does not introduce a second accent, warm the paper, or invert signal meanings.",
+        "section": "colors"
+      },
+      {
+        "name": "The 12px Floor",
+        "body": "No functional text renders below 12px, including badges, timestamps, table headers, status segments, and helper copy.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every number, path, tool name, and status token is monospace with tabular figures so streaming counts do not jitter.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "If a surface sits in normal document flow, it has no shadow. Add a rule or a tonal step instead. Shadows mean the element is temporarily above the deck.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Rule-Before-Shadow Rule",
+        "body": "Use a 1px border to separate two surfaces before considering any other treatment.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square Rule",
+        "body": "Every panel, control, badge, chip, card, dialog, and avatar is 0 radius. The loading spinner is the only circle.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Truthful OIA Rule",
+        "body": "The status line reflects real runtime state at every breakpoint. It is never filled with marketing copy or decorative telemetry.",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "Do separate surfaces with a 1px rule or a tonal step first.",
+      "Do put field labels in reversed ink bars at 12px mono uppercase.",
+      "Do set numbers, paths, tool names, and status tokens in tabular monospace.",
+      "Do keep one primary turquoise action per surface.",
+      "Do keep the OIA line visible at every breakpoint, including mobile.",
+      "Do derive new colors from the operator's base and accent."
+    ],
+    "donts": [
+      "Don't round a corner; the spinner is the only circle.",
+      "Don't put a shadow on a resting panel, card, or nav row.",
+      "Don't use turquoise, green, amber, or red decoratively.",
+      "Don't render functional text below 12px or track labels wider than 0.07em.",
+      "Don't add gradients, glass, glow, or a second accent hue.",
+      "Don't hide the pipeline, approvals, or run status behind a routine dialog.",
+      "Don't introduce a new signal hue for a new state."
+    ]
+  }
+}

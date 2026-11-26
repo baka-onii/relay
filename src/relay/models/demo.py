@@ -218,9 +218,12 @@ class DemoActionModel:
         for pattern, name, keys in patterns:
             match = re.fullmatch(pattern, action, re.DOTALL)
             if match and name in {tool.name for tool in tools}:
+                groups = match.groups()
+                if name == "read_directory" and not groups[0].strip():
+                    groups = (".",)
                 return NeedleResult(
                     selected_tool=name,
-                    arguments=dict(zip(keys, match.groups(), strict=True)),
+                    arguments=dict(zip(keys, groups, strict=True)),
                     confidence=1.0,
                     rankings=[ToolRanking(tool_name=name, confidence=1.0)],
                 )

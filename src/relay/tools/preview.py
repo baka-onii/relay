@@ -66,8 +66,10 @@ def approval_diff(call: ToolCall, config: AgentConfig) -> dict[str, str] | None:
             return None
         old = _read_lines(path)
         if old is None:
+            count = len(new)
+            unit = "line" if count == 1 else "lines"
             return {
-                "label": f"New file {args.get('path')} ({len(new)} lines)",
+                "label": f"New file {args.get('path')} ({count} {unit})",
                 "text": truncate_text("\n".join(new), _PREVIEW_CHARS),
             }
         return {

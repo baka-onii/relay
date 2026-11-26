@@ -169,12 +169,21 @@ const statusNames = {
   MAX_STEPS_REACHED: "Step limit",
 };
 const pageInfo = {
-  playground: ["Playground", "A little reasoning. A world of possibilities."],
-  workspace: ["Files", "Your project, inside a clear boundary."],
-  tools: ["Tools", "Seven capabilities. One carefully controlled runtime."],
+  playground: [
+    "Playground",
+    "Natural-language intent. Gated execution. Every step on the record.",
+  ],
+  workspace: [
+    "Files",
+    "A read-only view of the project inside the boundary.",
+  ],
+  tools: [
+    "Tools",
+    "One canonical definition per capability. Policy is declared, not implied.",
+  ],
   history: [
     "Run history",
-    "A record of what happened, not just what was said.",
+    "What executed, what was denied, and how long it took.",
   ],
 };
 const stored = (key, value) => {
@@ -191,6 +200,7 @@ const S = {
   workspace: null,
   tools: [],
   payloadArgs: {},
+  requireApprovalFor: [],
   edits: {},
   conversations: [],
   runs: new Map(),
@@ -226,7 +236,7 @@ function applyTheme(theme, persist = true) {
   button.setAttribute("aria-label", `Switch to ${next} mode`);
   button.title = `Switch to ${next} mode`;
   $('meta[name="theme-color"]').content =
-    theme === "dark" ? "#17231d" : "#f8f9f6";
+    theme === "dark" ? "#0b1014" : "#e9eef0";
 }
 systemTheme.addEventListener("change", (event) => {
   if (!["light", "dark"].includes(stored("relay-theme")))
@@ -294,7 +304,7 @@ function currentRun() {
 function inlineMarkdown(text) {
   return esc(text)
     .replace(/`([^`\n]+)`/g, "<code>$1</code>")
-    .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+    .replace(/\*\*([^\n]+?)\*\*/g, "<strong>$1</strong>");
 }
 function markdown(text, streaming = false) {
   const blocks = [];
@@ -447,11 +457,16 @@ function renderSettings() {
   $("#workspace-chip").title = S.workspace?.path || "";
   renderPermissions();
   $("#tool-list").innerHTML = S.tools
-    .map(
-      (tool) =>
-        `<button class="tool-list-item" data-tool="${esc(tool.name)}">${icon(toolIcons[tool.name] || "code")}<span>${esc(tool.name)}</span><i class="tool-status-dot"></i></button>`,
-    )
+    .map((tool) => {
+      const gated =
+        S.requireApprovalFor.includes(tool.name) || tool.name === "ask_user";
+      return `<button class="tool-list-item" data-tool="${esc(tool.name)}">${icon(toolIcons[tool.name] || "code")}<span>${esc(tool.name)}</span><i class="tool-status-dot${gated ? " gated" : ""}"></i></button>`;
+    })
     .join("");
+  const toolCount = $(".nav-count");
+  if (toolCount) toolCount.textContent = S.tools.length;
+  const badge = $(".count-badge");
+  if (badge) badge.textContent = S.tools.length;
   if (S.view === "tools") renderTools();
 }
 function renderSidebar() {
@@ -466,12 +481,58 @@ function renderSidebar() {
             `<div class="recent-row"><button class="recent-item${c.id === S.conversation?.id ? " selected" : ""}" data-conversation="${esc(c.id)}" title="${esc(c.title)}">${icon("chat")}<span>${esc(c.title)}</span></button><button class="recent-delete" data-delete-conversation="${esc(c.id)}" aria-label="Delete conversation: ${esc(c.title)}" ${[...S.runs.values()].some((run) => run.conversation_id === c.id && !run.done) ? 'disabled title="Stop the run before deleting"' : 'title="Delete conversation"'}>${icon("trash", true)}</button></div>`,
         )
         .join("")
-    : '<div class="recent-empty">A fresh start.<br>Your conversations will appear here.</div>';
+    : '<div class="recent-empty">Queue empty.<br>New jobs list here.</div>';
 }
 function formatChars(value) {
   return value >= 1000
     ? `${(value / 1000).toFixed(1)}k`
     : `${value}`;
+}
+function updateStatusLine() {
+  const state = $("#oia-state");
+  if (!state) return;
+  const run = activeRun(),
+    current = currentRun(),
+    waiting = current?.status === "WAITING_FOR_INPUT";
+  let label = "READY",
+    kind = "ready";
+  if (!S.ready) {
+    label = "LINK DOWN";
+    kind = "error";
+  } else if (run?.status === "CANCELLING") {
+    label = "STOPPING";
+    kind = "busy";
+  } else if (waiting) {
+    label = "INPUT REQ";
+    kind = "waiting";
+  } else if (run) {
+    label = "RUNNING";
+    kind = "busy";
+  } else if (["ERROR", "STALLED"].includes(current?.status)) {
+    label = "FAULT";
+    kind = "error";
+  }
+  state.textContent = label;
+  state.dataset.state = kind;
+  const steps = current?.steps || 0,
+    limit = S.settings?.max_tool_steps ?? 20;
+  const tokens = current?.context_tokens ?? null;
+  const used = tokens !== null ? tokens : current?.context_chars || 0;
+  const total =
+    tokens !== null
+      ? S.settings?.max_context_tokens || 0
+      : S.settings?.max_context_chars || 0;
+  $("#oia-workspace").textContent = S.workspace?.name || "—";
+  $("#oia-job").textContent = S.conversation?.id
+    ? S.conversation.id.slice(-4).toUpperCase()
+    : "0000";
+  $("#oia-steps").textContent = `${steps}/${limit}`;
+  $("#oia-gate").textContent = (
+    S.settings?.confidence_threshold ?? 0.85
+  ).toFixed(2);
+  $("#oia-buffer").textContent = total
+    ? `${formatChars(used)}/${formatChars(total)}`
+    : "0/0";
 }
 function updateContextMeter() {
   const node = $("#context-meter");
@@ -514,6 +575,7 @@ function updateComposer() {
     button.disabled = !S.ready || S.starting || Boolean(busy);
   });
   updateContextMeter();
+  updateStatusLine();
   setRuntimeStatus();
 }
 function selectInspector(tab) {
@@ -902,7 +964,7 @@ function renderPending(run) {
   const allowLabel = pending.call?.name === "write_file" ? "Allow write" : "Allow action";
   const diff = approval ? renderDiff(pending.diff) : "";
   const editor = approval ? approvalEditor(run, pending.call || { arguments: {} }) : "";
-  return `<div class="pending-card"><div class="pending-title">${icon(approval ? "shield" : "chat")}${approval ? "Your permission is needed" : "A quick question for you"}</div><p>${esc(pending.question)}</p>${approval ? `${diff || `<pre>${esc(approvalPreview(pending.call))}</pre>`}${editor}<p class="pending-hint">Nothing runs until you approve.</p><div class="pending-actions"><button class="button primary small" data-answer-run="${esc(run.id)}" data-approved="true" ${disabled}>${icon("check", true)}${allowLabel}</button><button class="button secondary small" data-answer-run="${esc(run.id)}" data-approved="edited" ${disabled}>${icon("tools", true)}Approve edited</button><button class="button secondary small" data-answer-run="${esc(run.id)}" data-approved="false" ${disabled}>Deny</button></div>` : '<p class="pending-hint">Type your answer in the message box below to continue.</p>'}</div>`;
+  return `<div class="pending-card"><div class="pending-title">${icon(approval ? "shield" : "chat")}${approval ? "Your permission is needed" : "A quick question for you"}</div><p>${esc(pending.question)}</p>${approval ? `${diff || `<pre>${esc(approvalPreview(pending.call))}</pre>`}${editor}<p class="pending-hint">Nothing runs until you approve.</p><div class="pending-actions"><button class="button primary small" data-answer-run="${esc(run.id)}" data-approved="true" ${disabled}>${icon("check", true)}${allowLabel}</button><button class="button secondary small" data-answer-run="${esc(run.id)}" data-approved="edited" ${disabled}>${icon("edit", true)}Approve edited</button><button class="button secondary small" data-answer-run="${esc(run.id)}" data-approved="false" ${disabled}>Deny</button></div>` : '<p class="pending-hint">Type your answer in the message box below to continue.</p>'}</div>`;
 }
 function renderAssistant(message) {
   const run = S.runs.get(message.run_id);
@@ -1057,7 +1119,7 @@ function renderActivity() {
     : 0;
   if (!run) {
     $("#activity-panel").innerHTML =
-      `<div class="activity-empty"><span class="starter-icon sage">${icon("history")}</span><h3>Every step, in the open.</h3><p>Send a message to follow the agent’s actions, safety checks, and tool results here.</p></div>`;
+      `<div class="activity-empty"><h3>Every step, in the open.</h3><p>Send a message to follow the agent’s actions, safety checks, and tool results here.</p></div>`;
     return;
   }
   const events = run.events || [],
@@ -1455,22 +1517,38 @@ function showView(view) {
 }
 function renderTools() {
   if (!S.settings) return;
+  const approvals = new Set(S.requireApprovalFor || []);
+  const readGate = S.settings.read_only_threshold,
+    writeGate = S.settings.confidence_threshold;
+  const rows = S.tools
+    .map((tool) => {
+      const policy =
+        tool.name === "ask_user"
+          ? "interactive"
+          : approvals.has(tool.name)
+            ? "approval"
+            : "auto";
+      const label =
+        policy === "interactive"
+          ? "INPUT"
+          : policy === "approval"
+            ? "APPROVAL"
+            : "AUTO";
+      const writeTool =
+        approvals.has(tool.name) || ["write_file", "ask_user"].includes(tool.name);
+      const gate = writeTool ? writeGate : readGate;
+      const tone =
+        policy === "interactive"
+          ? "lavender"
+          : policy === "approval"
+            ? "peach"
+            : "sage";
+      const count = Object.keys(tool.parameters.properties || {}).length;
+      return `<button class="tool-catalog-row" data-tool="${esc(tool.name)}"><span class="tool-catalog-name"><span class="starter-icon ${tone}">${icon(toolIcons[tool.name] || "code")}</span><strong>${esc(tool.name)}</strong></span><span class="tool-catalog-params">${count}</span><span class="tool-catalog-gate">${gate.toFixed(2)}</span><span class="tool-catalog-policy" data-policy="${policy}">${label}</span><span class="tool-catalog-desc">${esc(tool.description)}</span>${icon("chevron")}</button>`;
+    })
+    .join("");
   $("#tools-view").innerHTML =
-    `<div class="view-subheading"><p>One canonical definition powers the model description, schema, and validation.</p><span class="status-badge">${S.tools.length} tools registered</span></div><div class="tool-catalog">${S.tools
-      .map((tool) => {
-        const category =
-          tool.name === "write_file"
-            ? "APPROVAL REQUIRED"
-            : tool.name === "ask_user"
-              ? "INTERACTIVE"
-              : "READ ONLY";
-        const gate = ["write_file", "ask_user"].includes(tool.name)
-          ? S.settings.confidence_threshold
-          : S.settings.read_only_threshold;
-        const count = Object.keys(tool.parameters.properties || {}).length;
-        return `<button class="tool-catalog-card" data-tool="${esc(tool.name)}"><div class="tool-catalog-top"><span class="starter-icon ${tool.name === "write_file" ? "peach" : tool.name === "ask_user" ? "lavender" : "sage"}">${icon(toolIcons[tool.name] || "code")}</span><small>${category}</small></div><strong>${esc(tool.name)}</strong><p>${esc(tool.description)}</p><div class="tool-catalog-footer"><span>${count} ${count === 1 ? "parameter" : "parameters"} · gate ≥ ${gate.toFixed(2)}</span>${icon("arrow")}</div></button>`;
-      })
-      .join("")}</div>`;
+    `<div class="view-subheading"><p>One canonical definition powers the model description, schema, and validation.</p><span class="status-badge">${S.tools.length} tools registered</span></div><div class="tool-catalog"><div class="tool-catalog-head" aria-hidden="true"><span>TOOL</span><span>PARAMS</span><span>GATE</span><span>POLICY</span><span>DESCRIPTION</span><span></span></div>${rows}</div>`;
 }
 function showTool(name) {
   const tool = S.tools.find((item) => item.name === name);
@@ -1552,7 +1630,13 @@ function renderWorkspace() {
   let preview = `<div class="file-placeholder">${icon("file")}<h3>A closer look.</h3><p>Select a file to see what the agent sees. Everything here lives inside your workspace.</p></div>`;
   if (S.file) {
     const file = S.file;
-    preview = `<div class="file-preview-header"><span>${icon("file", true)}${esc(file.path)}</span><div class="file-preview-actions">${!file.loading && !file.error ? `<button class="button secondary small" data-ask-file="${esc(file.path)}">${icon("spark", true)}Ask Relay</button><button class="icon-button" id="copy-file" aria-label="Copy file contents">${icon("copy")}</button>` : ""}</div></div>${file.loading ? '<div class="file-placeholder"><span class="spinner"></span><p>Reading file…</p></div>' : file.error ? `<div class="file-placeholder"><p>${esc(file.error)}</p></div>` : `<pre class="file-content">${esc(file.content)}</pre>`}`;
+    preview = `<div class="file-preview-header"><span>${icon("file", true)}${esc(file.path)}</span><div class="file-preview-actions">${!file.loading && !file.error ? `<button class="button secondary small" data-ask-file="${esc(file.path)}">${icon("spark", true)}Ask Relay</button><button class="icon-button" id="copy-file" aria-label="Copy file contents">${icon("copy")}</button>` : ""}</div></div>${file.loading ? '<div class="file-placeholder"><span class="spinner"></span><p>Reading file…</p></div>' : file.error ? `<div class="file-placeholder"><p>${esc(file.error)}</p></div>` : `<pre class="file-content">${String(file.content)
+      .split("\n")
+      .map(
+        (line, index) =>
+          `<span class="line" data-line="${index + 1}"><span>${esc(line) || " "}</span></span>`,
+      )
+      .join("")}</pre>`}`;
   }
   $("#workspace-view").innerHTML =
     `<div class="view-subheading"><p>A read-only view of <strong>${esc(root)}</strong>. Agent writes require permission.</p><button class="button secondary small" id="refresh-files">${icon("refresh", true)}Refresh</button></div><div class="workspace-layout"><div class="files-card"><div class="files-card-header"><div class="file-breadcrumbs">${breadcrumbs}</div>${segments.length ? `<button class="icon-button" data-directory="${esc(segments.slice(0, -1).join("/") || ".")}" aria-label="Parent directory">${icon("up")}</button>` : ""}</div><label class="file-search">${icon("search")}<input id="file-filter" placeholder="Filter this directory…" value="${esc(S.fileFilter)}" aria-label="Filter files"></label><div class="file-list" id="file-list">${fileRows()}</div></div><div class="file-preview">${preview}</div></div>`;
@@ -1564,7 +1648,7 @@ function renderHistory() {
   $("#history-view").innerHTML =
     `<div class="history-stats"><div class="history-stat"><strong>${runs.length}</strong><span>Total runs</span></div><div class="history-stat"><strong>${done}</strong><span>Completed</span></div><div class="history-stat"><strong>${tools}</strong><span>Tool executions</span></div></div>${
       runs.length
-        ? `<div class="history-table"><div class="history-row table-header"><span>CONVERSATION</span><span>STATUS</span><span>MODE</span><span>TOOLS</span><span>DURATION</span><span></span></div>${runs
+        ? `<div class="history-table"><div class="history-row table-header"><span>CONVERSATION</span><span>STATUS</span><span>MODE</span><span>STEPS</span><span>ELAPSED</span><span></span></div>${runs
             .map((run) => {
               const conversation = S.conversations.find(
                 (c) => c.id === run.conversation_id,
@@ -1572,7 +1656,7 @@ function renderHistory() {
               return `<button class="history-row" data-conversation="${esc(run.conversation_id)}"><span>${esc(conversation?.title || "Conversation")}</span><span>${statusBadge(run.status)}</span><span>${run.mode === "demo" ? "Demo" : "Live"}</span><span>${run.steps || 0} steps</span><span>${duration(run.elapsed_ms || 0)}</span>${icon("chevron")}</button>`;
             })
             .join("")}</div>`
-        : `<div class="empty-state">${icon("history")}<h3>A clean slate.</h3><p>Your runs, tool activity, and execution outcomes will appear here as you work.</p><button class="button secondary" data-view="playground">Start a conversation${icon("arrow", true)}</button></div>`
+        : `<div class="empty-state">${icon("history")}<h3>No runs on record.</h3><p>Runs, tool activity, and execution outcomes appear here once you start a job.</p><button class="button secondary" data-view="playground">Open a job${icon("arrow", true)}</button></div>`
     }`;
 }
 const SETTINGS_TABS = ["model", "limits", "context", "streaming", "prompts", "appearance"];
@@ -1630,6 +1714,7 @@ function showSettings() {
 function updateModeExplanation() {
   const demo = $('input[name="mode"]:checked').value === "demo";
   $("#live-settings").classList.toggle("hidden", demo);
+  $("#demo-register").classList.toggle("hidden", !demo);
   $("#provider").disabled = demo;
   $("#base-url").disabled = demo;
   $("#model-name").disabled = demo;
@@ -1850,7 +1935,7 @@ function applyPanelState() {
   syncCollapseIcon();
   applyCustomColors();
 }
-const DEFAULT_UI_COLORS = { base: "#f8f9f6", accent: "#d36b48" };
+const DEFAULT_UI_COLORS = { base: "#e9eef0", accent: "#0f7d78" };
 function applyCustomColors() {
   const root = document.documentElement.style;
   const base = stored("relay-ui-base"),
@@ -1902,6 +1987,11 @@ function applyCustomColors() {
     accentInput = $("#ui-accent-color");
   if (baseInput) baseInput.value = base || DEFAULT_UI_COLORS.base;
   if (accentInput) accentInput.value = accent || DEFAULT_UI_COLORS.accent;
+  const baseHex = $('[data-color-for="ui-base-color"]'),
+    accentHex = $('[data-color-for="ui-accent-color"]');
+  if (baseHex) baseHex.textContent = (base || DEFAULT_UI_COLORS.base).toUpperCase();
+  if (accentHex)
+    accentHex.textContent = (accent || DEFAULT_UI_COLORS.accent).toUpperCase();
 }
 function baseLuminance(hex) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex || "");
@@ -2237,6 +2327,7 @@ async function boot() {
     S.workspace = data.workspace;
     S.tools = data.tools;
     S.payloadArgs = data.payload_args || {};
+    S.requireApprovalFor = data.require_approval_for || [];
     S.conversations = data.conversations;
     for (const run of data.runs) S.runs.set(run.id, run);
     S.ready = true;

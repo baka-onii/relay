@@ -561,13 +561,15 @@ class WorkspaceService:
     def bootstrap(self, session: BrowserSession) -> dict:
         with self.lock:
             session_key = self.session_keys.get(session.token, "")
-        registry = create_default_registry(self.run_config(session.settings, session_key))
+        config = self.run_config(session.settings, session_key)
+        registry = create_default_registry(config)
         with session.lock:
             dumped = session.settings.model_dump()
             dumped["api_key"] = ""  # The value is never sent back to the browser.
             return {
                 "session_token": session.token,
                 "settings": dumped,
+                "require_approval_for": list(config.require_approval_for),
                 "workspace": {
                     "name": Path(self.config.workspace_root).name,
                     "path": self.config.workspace_root,
@@ -944,6 +946,23 @@ def make_server(service: WorkspaceService, host: str = "0.0.0.0", port: int = 30
                     data = files("relay").joinpath("web", name).read_bytes()
                     content_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
                     self.headers_for(200, content_type + "; charset=utf-8", len(data))
+                    self.end_headers()
+                    self.wfile.write(data)
+                    return
+                if method == "GET" and path.startswith("/fonts/"):
+                    name = path[len("/fonts/") :]
+                    if name not in {
+                        "spline-sans-latin.woff2",
+                        "spline-sans-latin-ext.woff2",
+                        "spline-sans-mono-latin.woff2",
+                        "spline-sans-mono-latin-ext.woff2",
+                        "OFL-SplineSans.txt",
+                        "OFL-SplineSansMono.txt",
+                    }:
+                        raise WebError(404, "Not found.")
+                    data = files("relay").joinpath("web", "fonts", name).read_bytes()
+                    content_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
+                    self.headers_for(200, content_type, len(data))
                     self.end_headers()
                     self.wfile.write(data)
                     return
